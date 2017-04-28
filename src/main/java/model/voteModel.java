@@ -43,11 +43,11 @@ public class voteModel {
 	}
 
 	public int deleteVote(String[] mids) {
-		vote = (DBHelper) vote.or();
+		vote.or();
 		for (int i = 0; i < mids.length; i++) {
 			vote.eq("_id", new ObjectId(mids[i]));
 		}
-		return vote.delete() != null ? 0 : 99;
+		return vote.deleteAll() != mids.length ? 0 : 99;
 	}
 	public JSONArray find(JSONObject fileInfo) {
 		for (Object object2 : fileInfo.keySet()) {
