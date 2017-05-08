@@ -29,7 +29,8 @@ public class vote {
 
 	// 修改投票
 	public String VoteUpdate(String vid, String info) {
-		return model.resultMessage(model.updateVote(vid, JSONHelper.string2json(info)), "投票修改成功");
+		return model.resultMessage(
+				model.updateVote(vid, JSONHelper.string2json(info)), "投票修改成功");
 	}
 
 	// 删除投票
@@ -59,7 +60,8 @@ public class vote {
 	// 条件分页
 	@SuppressWarnings("unchecked")
 	public String VotePageBy(int idx, int pageSize, String info) {
-		_obj.put("records", model.page(idx, pageSize, JSONHelper.string2json(info)));
+		_obj.put("records",
+				model.page(idx, pageSize, JSONHelper.string2json(info)));
 		return model.resultMessage(0, _obj.toString());
 	}
 
@@ -74,14 +76,16 @@ public class vote {
 	 * @return
 	 */
 	public String VoteSet(String vid, String info) {
-		return model.resultMessage(model.votes(vid, JSONHelper.string2json(info)), "投票成功");
+		return model.resultMessage(
+				model.votes(vid, JSONHelper.string2json(info)), "投票成功");
 	}
 
 	// 查看投票
 	@SuppressWarnings("unchecked")
 	public String VoteCount(String _id) {
 		JSONObject object = model.find(_id);
-		_obj.put("records", JSONHelper.string2array(object.get("votes").toString()));
+		_obj.put("records",
+				JSONHelper.string2array(object.get("vote").toString()));
 		return model.resultMessage(0, _obj.toString());
 	}
 }
