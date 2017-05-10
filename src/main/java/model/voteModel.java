@@ -10,6 +10,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
+import apps.appsProxy;
 import esayhelper.DBHelper;
 import esayhelper.formHelper;
 import esayhelper.jGrapeFW_Message;
@@ -19,7 +20,9 @@ public class voteModel {
 	private static DBHelper vote;
 	private static formHelper _form;
 	static {
-		vote = new DBHelper("mongodb", "vote");
+//		vote = new DBHelper(appsProxy.configValue().get("db").toString(),
+//				"vote");
+		 vote = new DBHelper("mongodb", "vote");
 		_form = vote.getChecker();
 	}
 
@@ -85,7 +88,7 @@ public class voteModel {
 		for (Object object2 : fileInfo.keySet()) {
 			vote.eq(object2.toString(), fileInfo.get(object2.toString()));
 		}
-		JSONArray array = vote.page(idx, pageSize);
+		JSONArray array = vote.dirty().page(idx, pageSize);
 		JSONObject object = new JSONObject();
 		object.put("totalSize",
 				(int) Math.ceil((double) vote.count() / pageSize));
