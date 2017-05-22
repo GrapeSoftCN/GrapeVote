@@ -11,6 +11,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
 import apps.appsProxy;
+import database.db;
 import esayhelper.DBHelper;
 import esayhelper.formHelper;
 import esayhelper.jGrapeFW_Message;
@@ -20,10 +21,13 @@ public class voteModel {
 	private static DBHelper vote;
 	private static formHelper _form;
 	static {
-//		vote = new DBHelper(appsProxy.configValue().get("db").toString(),
-//				"vote");
-		 vote = new DBHelper("mongodb", "vote");
+		vote = new DBHelper(appsProxy.configValue().get("db").toString(),
+				"vote");
 		_form = vote.getChecker();
+	}
+
+	private db bind() {
+		return vote.bind(String.valueOf(appsProxy.appid()));
 	}
 
 	public voteModel() {
@@ -35,7 +39,7 @@ public class voteModel {
 		if (!_form.checkRule(object)) {
 			return resultMessage(1, "");
 		}
-		String info = vote.data(object).insertOnce().toString();
+		String info = bind().data(object).insertOnce().toString();
 		return find(info).toString();
 	}
 
@@ -44,39 +48,39 @@ public class voteModel {
 		if (object.containsKey("vote")) {
 			object.put("vote", object.get("vote").toString());
 		}
-		return vote.eq("_id", new ObjectId(mid)).data(object).update() != null
+		return bind().eq("_id", new ObjectId(mid)).data(object).update() != null
 				? 0 : 99;
 	}
 
 	public int deleteVote(String mid) {
-		return vote.eq("_id", new ObjectId(mid)).delete() != null ? 0 : 99;
+		return bind().eq("_id", new ObjectId(mid)).delete() != null ? 0 : 99;
 	}
 
 	public int deleteVote(String[] mids) {
-		vote.or();
+		bind().or();
 		for (int i = 0; i < mids.length; i++) {
-			vote.eq("_id", new ObjectId(mids[i]));
+			bind().eq("_id", new ObjectId(mids[i]));
 		}
-		return vote.deleteAll() == mids.length ? 0 : 99;
+		return bind().deleteAll() == mids.length ? 0 : 99;
 	}
 
 	public JSONArray find(JSONObject fileInfo) {
 		for (Object object2 : fileInfo.keySet()) {
-			vote.eq(object2.toString(), fileInfo.get(object2.toString()));
+			bind().eq(object2.toString(), fileInfo.get(object2.toString()));
 		}
-		return vote.select();
+		return bind().select();
 	}
 
 	public JSONObject find(String vid) {
-		return vote.eq("_id", new ObjectId(vid)).find();
+		return bind().eq("_id", new ObjectId(vid)).find();
 	}
 
 	@SuppressWarnings("unchecked")
 	public JSONObject page(int idx, int pageSize) {
-		JSONArray array = vote.page(idx, pageSize);
+		JSONArray array = bind().page(idx, pageSize);
 		JSONObject object = new JSONObject();
 		object.put("totalSize",
-				(int) Math.ceil((double) vote.count() / pageSize));
+				(int) Math.ceil((double) bind().count() / pageSize));
 		object.put("currentPage", idx);
 		object.put("pageSize", pageSize);
 		object.put("data", array);
@@ -86,12 +90,12 @@ public class voteModel {
 	@SuppressWarnings("unchecked")
 	public JSONObject page(int idx, int pageSize, JSONObject fileInfo) {
 		for (Object object2 : fileInfo.keySet()) {
-			vote.eq(object2.toString(), fileInfo.get(object2.toString()));
+			bind().eq(object2.toString(), fileInfo.get(object2.toString()));
 		}
-		JSONArray array = vote.dirty().page(idx, pageSize);
+		JSONArray array = bind().dirty().page(idx, pageSize);
 		JSONObject object = new JSONObject();
 		object.put("totalSize",
-				(int) Math.ceil((double) vote.count() / pageSize));
+				(int) Math.ceil((double) bind().count() / pageSize));
 		object.put("currentPage", idx);
 		object.put("pageSize", pageSize);
 		object.put("data", array);
@@ -115,7 +119,7 @@ public class voteModel {
 			newarray.add(object2);
 		}
 		objects.put("vote", newarray.toString());
-		return vote.eq("_id", new ObjectId(vid)).data(objects).update() != null
+		return bind().eq("_id", new ObjectId(vid)).data(objects).update() != null
 				? 0 : 99;
 	}
 
