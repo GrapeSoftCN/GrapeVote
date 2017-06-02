@@ -16,13 +16,15 @@ import esayhelper.DBHelper;
 import esayhelper.formHelper;
 import esayhelper.jGrapeFW_Message;
 import esayhelper.formHelper.formdef;
+import nlogger.nlogger;
 
 public class voteModel {
 	private static DBHelper vote;
 	private static formHelper _form;
+	private JSONObject _obj = new JSONObject();
+
 	static {
-		vote = new DBHelper(appsProxy.configValue().get("db").toString(),
-				"vote");
+		vote = new DBHelper(appsProxy.configValue().get("db").toString(), "vote");
 		_form = vote.getChecker();
 	}
 
@@ -36,91 +38,160 @@ public class voteModel {
 	}
 
 	public String AddVote(JSONObject object) {
-		if (!_form.checkRule(object)) {
-			return resultMessage(1, "");
+		String info = "";
+		if (object != null) {
+			if (!_form.checkRule(object)) {
+				return resultMessage(1, "");
+			}
+			info = bind().data(object).insertOnce().toString();
 		}
-		String info = bind().data(object).insertOnce().toString();
-		return find(info).toString();
+		if (("").equals(info)) {
+			resultMessage(99);
+		}
+		return resultMessage(find(info));
 	}
 
 	@SuppressWarnings("unchecked")
 	public int updateVote(String mid, JSONObject object) {
-		if (object.containsKey("vote")) {
-			object.put("vote", object.get("vote").toString());
+		int code = 99;
+		if (object != null) {
+			try {
+				if (object.containsKey("vote")) {
+					object.put("vote", object.get("vote").toString());
+				}
+				code = bind().eq("_id", new ObjectId(mid)).data(object).update() != null ? 0 : 99;
+			} catch (Exception e) {
+				nlogger.logout(e);
+				code = 99;
+			}
 		}
-		return bind().eq("_id", new ObjectId(mid)).data(object).update() != null
-				? 0 : 99;
+		return code;
 	}
 
 	public int deleteVote(String mid) {
-		return bind().eq("_id", new ObjectId(mid)).delete() != null ? 0 : 99;
+		int code = 99;
+		try {
+			JSONObject object = bind().eq("_id", new ObjectId(mid)).delete();
+			code = (object != null ? 0 : 99);
+		} catch (Exception e) {
+			nlogger.logout(e);
+			code = 99;
+		}
+		return code;
 	}
 
 	public int deleteVote(String[] mids) {
-		bind().or();
-		for (int i = 0; i < mids.length; i++) {
-			bind().eq("_id", new ObjectId(mids[i]));
+		int code = 99;
+		try {
+			bind().or();
+			for (int i = 0, len = mids.length; i < len; i++) {
+				bind().eq("_id", new ObjectId(mids[i]));
+			}
+			long codes = bind().deleteAll();
+			code = (Integer.parseInt(String.valueOf(codes)) == mids.length ? 0 : 99);
+		} catch (Exception e) {
+			nlogger.logout(e);
+			code = 99;
 		}
-		return bind().deleteAll() == mids.length ? 0 : 99;
+		return code;
 	}
 
-	public JSONArray find(JSONObject fileInfo) {
-		for (Object object2 : fileInfo.keySet()) {
-			bind().eq(object2.toString(), fileInfo.get(object2.toString()));
+	public String find(JSONObject fileInfo) {
+		JSONArray array = null;
+		if (fileInfo != null) {
+			try {
+				array = new JSONArray();
+				for (Object object2 : fileInfo.keySet()) {
+					bind().eq(object2.toString(), fileInfo.get(object2.toString()));
+				}
+				array = bind().limit(30).select();
+			} catch (Exception e) {
+				nlogger.logout(e);
+				array = null;
+			}
 		}
-		return bind().select();
+		return resultMessage(array);
 	}
 
 	public JSONObject find(String vid) {
-		return bind().eq("_id", new ObjectId(vid)).find();
-	}
-
-	@SuppressWarnings("unchecked")
-	public JSONObject page(int idx, int pageSize) {
-		JSONArray array = bind().page(idx, pageSize);
-		JSONObject object = new JSONObject();
-		object.put("totalSize",
-				(int) Math.ceil((double) bind().count() / pageSize));
-		object.put("currentPage", idx);
-		object.put("pageSize", pageSize);
-		object.put("data", array);
-		return object;
-	}
-
-	@SuppressWarnings("unchecked")
-	public JSONObject page(int idx, int pageSize, JSONObject fileInfo) {
-		for (Object object2 : fileInfo.keySet()) {
-			bind().eq(object2.toString(), fileInfo.get(object2.toString()));
+		JSONObject object = null;
+		try {
+			object = new JSONObject();
+			object = bind().eq("_id", new ObjectId(vid)).find();
+		} catch (Exception e) {
+			nlogger.logout(e);
+			object = null;
 		}
-		JSONArray array = bind().dirty().page(idx, pageSize);
-		JSONObject object = new JSONObject();
-		object.put("totalSize",
-				(int) Math.ceil((double) bind().count() / pageSize));
-		object.put("currentPage", idx);
-		object.put("pageSize", pageSize);
-		object.put("data", array);
 		return object;
+	}
+
+	@SuppressWarnings("unchecked")
+	public String page(int idx, int pageSize) {
+		JSONObject object = null;
+		try {
+			JSONArray array = bind().page(idx, pageSize);
+			object = new JSONObject();
+			object.put("totalSize", (int) Math.ceil((double) bind().count() / pageSize));
+			object.put("currentPage", idx);
+			object.put("pageSize", pageSize);
+			object.put("data", array);
+		} catch (Exception e) {
+			nlogger.logout(e);
+			object = null;
+		}
+		return resultMessage(object);
+	}
+
+	@SuppressWarnings("unchecked")
+	public String page(int idx, int pageSize, JSONObject fileInfo) {
+		JSONObject object = null;
+		if (fileInfo != null) {
+			try {
+				for (Object object2 : fileInfo.keySet()) {
+					if ("_id".equals(object2.toString())) {
+						bind().eq("_id", new ObjectId(fileInfo.get("_id").toString()));
+					}
+					bind().eq(object2.toString(), fileInfo.get(object2.toString()));
+				}
+				JSONArray array = bind().dirty().page(idx, pageSize);
+				object = new JSONObject();
+				object.put("totalSize", (int) Math.ceil((double) bind().count() / pageSize));
+				object.put("currentPage", idx);
+				object.put("pageSize", pageSize);
+				object.put("data", array);
+			} catch (Exception e) {
+				object = null;
+			}
+		}
+		return resultMessage(object);
 	}
 
 	@SuppressWarnings("unchecked")
 	public int votes(String vid, JSONObject object) {
-		JSONObject objects = new JSONObject();
-		JSONArray newarray = new JSONArray();
-		// 获取当前投票
-		JSONObject _obj = find(vid);
-		String votes = _obj.get("vote").toString();
-		JSONArray array = (JSONArray) JSONValue.parse(votes);
-		for (int i = 0; i < array.size(); i++) {
-			JSONObject object2 = (JSONObject) array.get(i);
-			if (object2.get("itemid").toString().equals(object.get("itemid"))) {
-				object2.put("count",
-						Integer.parseInt(object2.get("count").toString()) + 1);
+		int code = 99;
+		if (object != null) {
+			try {
+				JSONObject objects = new JSONObject();
+				JSONArray newarray = new JSONArray();
+				// 获取当前投票
+				JSONObject _obj = find(vid);
+				String votes = _obj.get("vote").toString();
+				JSONArray array = (JSONArray) JSONValue.parse(votes);
+				for (int i = 0; i < array.size(); i++) {
+					JSONObject object2 = (JSONObject) array.get(i);
+					if (object2.get("itemid").toString().equals(object.get("itemid"))) {
+						object2.put("count", Integer.parseInt(object2.get("count").toString()) + 1);
+					}
+					newarray.add(object2);
+				}
+				objects.put("vote", newarray.toString());
+				code = bind().eq("_id", new ObjectId(vid)).data(objects).update() != null ? 0 : 99;
+			} catch (Exception e) {
+				nlogger.logout(e);
+				code = 99;
 			}
-			newarray.add(object2);
 		}
-		objects.put("vote", newarray.toString());
-		return bind().eq("_id", new ObjectId(vid)).data(objects).update() != null
-				? 0 : 99;
+		return code;
 	}
 
 	/**
@@ -132,18 +203,40 @@ public class voteModel {
 	 */
 	@SuppressWarnings("unchecked")
 	public JSONObject AddMap(HashMap<String, Object> map, JSONObject object) {
-		if (map.entrySet() != null) {
-			Iterator<Entry<String, Object>> iterator = map.entrySet()
-					.iterator();
-			while (iterator.hasNext()) {
-				Map.Entry<String, Object> entry = (Map.Entry<String, Object>) iterator
-						.next();
-				if (!object.containsKey(entry.getKey())) {
-					object.put(entry.getKey(), entry.getValue());
+		if (object!=null) {
+			if (map.entrySet() != null) {
+				Iterator<Entry<String, Object>> iterator = map.entrySet().iterator();
+				while (iterator.hasNext()) {
+					Map.Entry<String, Object> entry = (Map.Entry<String, Object>) iterator.next();
+					if (!object.containsKey(entry.getKey())) {
+						object.put(entry.getKey(), entry.getValue());
+					}
 				}
 			}
 		}
 		return object;
+	}
+
+	public String resultMessage(int num) {
+		return resultMessage(num, "");
+	}
+
+	@SuppressWarnings("unchecked")
+	public String resultMessage(JSONObject object) {
+		if (object == null) {
+			object = new JSONObject();
+		}
+		_obj.put("records", object);
+		return resultMessage(0, _obj.toString());
+	}
+
+	@SuppressWarnings("unchecked")
+	public String resultMessage(JSONArray array) {
+		if (array == null) {
+			array = new JSONArray();
+		}
+		_obj.put("records", array);
+		return resultMessage(0, _obj.toString());
 	}
 
 	public String resultMessage(int num, String message) {

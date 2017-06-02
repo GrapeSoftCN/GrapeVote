@@ -2,10 +2,18 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import esayhelper.JSONHelper;
+import httpServer.booter;
 import interfaceApplication.vote;
 
 public class test {
 	public static void main(String[] args) {
-		System.out.println(new vote().VoteCount("58f6cd791a4769cbf53a5e1d"));
+		booter booter = new booter();
+		try {
+			System.out.println("GrapeVote!");
+			System.setProperty("AppName", "GrapeVote");
+			booter.start(1008);
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
 	}
 }

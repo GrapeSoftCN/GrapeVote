@@ -11,7 +11,6 @@ import model.voteModel;
 public class vote {
 	private voteModel model = new voteModel();
 	private HashMap<String, Object> map = new HashMap<>();
-	private JSONObject _obj = new JSONObject();
 
 	public vote() {
 		map.put("timediff", 0);
@@ -20,17 +19,14 @@ public class vote {
 		map.put("starttime", TimeHelper.nowMillis() + "");
 	}
 
-	@SuppressWarnings("unchecked")
 	public String VoteAdd(String info) {
 		JSONObject object = model.AddMap(map, JSONHelper.string2json(info));
-		_obj.put("records", JSONHelper.string2json(model.AddVote(object)));
-		return model.resultMessage(0, _obj.toString());
+		return model.AddVote(object);
 	}
 
 	// 修改投票
 	public String VoteUpdate(String vid, String info) {
-		return model.resultMessage(
-				model.updateVote(vid, JSONHelper.string2json(info)), "投票修改成功");
+		return model.resultMessage(model.updateVote(vid, JSONHelper.string2json(info)), "投票修改成功");
 	}
 
 	// 删除投票
@@ -44,25 +40,18 @@ public class vote {
 	}
 
 	// 搜索投票
-	@SuppressWarnings("unchecked")
 	public String VoteSearch(String info) {
-		_obj.put("records", model.find(JSONHelper.string2json(info)));
-		return model.resultMessage(0, _obj.toString());
+		return model.find(JSONHelper.string2json(info));
 	}
 
 	// 分页
-	@SuppressWarnings("unchecked")
 	public String VotePage(int idx, int pageSize) {
-		_obj.put("records", model.page(idx, pageSize));
-		return model.resultMessage(0, _obj.toString());
+		return model.page(idx, pageSize);
 	}
 
 	// 条件分页
-	@SuppressWarnings("unchecked")
 	public String VotePageBy(int idx, int pageSize, String info) {
-		_obj.put("records",
-				model.page(idx, pageSize, JSONHelper.string2json(info)));
-		return model.resultMessage(0, _obj.toString());
+		return model.page(idx, pageSize, JSONHelper.string2json(info));
 	}
 
 	/**
@@ -76,16 +65,15 @@ public class vote {
 	 * @return
 	 */
 	public String VoteSet(String vid, String info) {
-		return model.resultMessage(
-				model.votes(vid, JSONHelper.string2json(info)), "投票成功");
+		return model.resultMessage(model.votes(vid, JSONHelper.string2json(info)), "投票成功");
 	}
 
 	// 查看投票
-	@SuppressWarnings("unchecked")
 	public String VoteCount(String _id) {
 		JSONObject object = model.find(_id);
-		_obj.put("records",
-				JSONHelper.string2array(object.get("vote").toString()));
-		return model.resultMessage(0, _obj.toString());
+		if (object==null) {
+			model.resultMessage(0, "暂无投票信息");
+		}
+		return model.resultMessage(JSONHelper.string2array(object.get("vote").toString()));
 	}
 }
