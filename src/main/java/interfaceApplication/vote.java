@@ -4,9 +4,9 @@ import java.util.HashMap;
 
 import org.json.simple.JSONObject;
 
-import esayhelper.JSONHelper;
-import esayhelper.TimeHelper;
+import json.JSONHelper;
 import model.voteModel;
+import time.TimeHelper;
 
 public class vote {
 	private voteModel model = new voteModel();

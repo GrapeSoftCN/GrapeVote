@@ -1,9 +1,4 @@
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-
-import esayhelper.JSONHelper;
 import httpServer.booter;
-import interfaceApplication.vote;
 
 public class test {
 	public static void main(String[] args) {

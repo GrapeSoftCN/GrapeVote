@@ -8,14 +8,13 @@ import java.util.Map.Entry;
 import org.bson.types.ObjectId;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
 
+import JGrapeSystem.jGrapeFW_Message;
 import apps.appsProxy;
 import check.formHelper;
 import check.formHelper.formdef;
 import database.DBHelper;
 import database.db;
-import esayhelper.jGrapeFW_Message;
 import nlogger.nlogger;
 
 public class voteModel {
@@ -161,6 +160,8 @@ public class voteModel {
 				object.put("data", array);
 			} catch (Exception e) {
 				object = null;
+			}finally {
+				bind().clear();
 			}
 		}
 		return resultMessage(object);
@@ -176,7 +177,7 @@ public class voteModel {
 				// 获取当前投票
 				JSONObject _obj = find(vid);
 				String votes = _obj.get("vote").toString();
-				JSONArray array = (JSONArray) JSONValue.parse(votes);
+				JSONArray array = JSONArray.toJSONArray(votes);
 				for (int i = 0; i < array.size(); i++) {
 					JSONObject object2 = (JSONObject) array.get(i);
 					if (object2.get("itemid").toString().equals(object.get("itemid"))) {
