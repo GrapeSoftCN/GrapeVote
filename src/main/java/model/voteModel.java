@@ -18,20 +18,18 @@ import database.db;
 import nlogger.nlogger;
 
 public class voteModel {
-	private static DBHelper vote;
-	private static formHelper _form;
+	private DBHelper vote;
+	private formHelper _form;
 	private JSONObject _obj = new JSONObject();
 
-	static {
-		vote = new DBHelper(appsProxy.configValue().get("db").toString(), "vote");
-		_form = vote.getChecker();
-	}
 
 	private db bind() {
 		return vote.bind(String.valueOf(appsProxy.appid()));
 	}
 
 	public voteModel() {
+		vote = new DBHelper(appsProxy.configValue().get("db").toString(), "vote");
+		_form = vote.getChecker();
 		_form.putRule("name", formdef.notNull);
 		_form.putRule("vote", formdef.notNull);
 	}
